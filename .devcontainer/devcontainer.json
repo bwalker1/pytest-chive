@@ -5,7 +5,7 @@
         "context": "..",
         "target": "dev"
     },
-    // "onCreateCommand": "pip install -e .",
+    "onCreateCommand": "pip install -e .",
     "customizations": {
         "vscode": {
             "settings": {

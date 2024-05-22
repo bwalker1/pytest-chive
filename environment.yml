@@ -3,12 +3,12 @@ channels:
   - conda-forge
 dependencies:
   - conda
-  - python
+  - python>=3.8
   - numpy
   - pandas
   - scanpy
   - matplotlib
-  - pytest=6.2.0
+  - pytest==8.2.1
   - pyyaml
   - decorator
   - pip

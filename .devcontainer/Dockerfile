@@ -7,7 +7,7 @@ RUN --mount=type=cache,target=/opt/conda/pkgs \
     --mount=type=bind,source=environment.yml,target=environment.yml \
     eval "$(micromamba shell hook --shell bash)" && \
     micromamba activate && \
-    micromamba install -n base -y -f environment.yml git openssh -c conda-forge 
+    micromamba install -n base -y -f environment.yml git openssh python=3.12 -c conda-forge 
 
 
 FROM blwalker/devcon as dev

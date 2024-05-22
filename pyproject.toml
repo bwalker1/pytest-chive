@@ -35,7 +35,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-    "pytest>=6.2.0",
+    "pytest>=8",
 ]
 [project.urls]
 Repository = "https://github.com/bwalker1/pytest-chive"
