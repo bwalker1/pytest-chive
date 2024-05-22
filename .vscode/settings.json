@@ -11,6 +11,8 @@
     "files.exclude": {
         "**/__pycache__": true,
         "**/.pytest_cache": true,
+        "**/*.egg-info": true,
+        ".tox": true
     },
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "ms-python.black-formatter"
