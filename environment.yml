@@ -1,0 +1,14 @@
+name: base
+channels:
+  - conda-forge
+dependencies:
+  - conda
+  - python
+  - numpy
+  - pandas
+  - scanpy
+  - matplotlib
+  - pytest=6.2.0
+  - pyyaml
+  - decorator
+  - pip
