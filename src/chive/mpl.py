@@ -1,10 +1,17 @@
-import matplotlib.pyplot as plt
 from pathlib import Path
 import pytest
 
 
+@pytest.fixture(scope="session")
+def plt():
+    # this takes a while to import, so we delay it until it's actually needed
+    import matplotlib.pyplot as plt
+
+    return plt
+
+
 @pytest.fixture(scope="function")
-def figsaver(request, dataset: str, exp_name: str):
+def figsaver(request, plt, dataset: str, exp_name: str):
     save = request.config.getoption("--savefig")
 
     def _savefig(fig, idx=None):
@@ -28,7 +35,7 @@ def figsaver(request, dataset: str, exp_name: str):
 
 
 @pytest.fixture(scope="function")
-def fig(figsaver):
+def fig(figsaver, plt):
     fig = plt.figure()
     try:
         yield fig

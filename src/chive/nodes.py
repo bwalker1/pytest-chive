@@ -1,11 +1,10 @@
 import decorator
-import inspect
 from pathlib import Path
 import pytest
 import types
 from typing import Final
 
-from .lazy import ChiveLazyFunc, _resolve
+from .lazy import ChiveLazyFunc
 from .io import get_save_path
 
 default_scope: Final[str] = "session"

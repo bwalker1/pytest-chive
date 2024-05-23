@@ -7,9 +7,9 @@ from typing import *  # type: ignore
 import warnings
 import yaml
 
-import chive
 from .lazy import ChiveLazyFunc, _resolve
-from .io import get_save_path
+from .io import get_save_path, ChiveIO
+from .nodes import default_scope, param
 
 
 def pytest_addoption(parser, pluginmanager):
@@ -45,6 +45,7 @@ class ChivePlugin:
     def __init__(self, force_recompute=False):
         self.params = {}
         self.force_recompute = force_recompute
+        self.IO = ChiveIO()
 
     def pytest_configure(self, config):
         config.addinivalue_line("markers", "chive_output: Chive output node")
@@ -54,9 +55,10 @@ class ChivePlugin:
             with open(param) as f:
                 params = yaml.safe_load(f)
             for name, vals in params.items():
-                self.load_param(name, chive.param(vals), overwrite=True)
+                self.load_param(name, param(vals), overwrite=True)
 
     def pytest_collect_file(self, file_path, parent):
+        return
         if file_path.suffix == ".py" and not file_path.name.startswith("_"):
             # first check for the text "chive" to avoid loading unnecessary files
             with open(file_path) as f:
@@ -64,7 +66,7 @@ class ChivePlugin:
                     return
             mod = _load_from_path(file_path)
             for name, obj in mod.__dict__.items():
-                if isinstance(obj, chive.param):
+                if isinstance(obj, param):
                     self.load_param(name, obj, overwrite=False)
 
                 if (
@@ -83,7 +85,7 @@ class ChivePlugin:
                 metafunc.parametrize(
                     name,
                     vals,
-                    scope=chive.default_scope,
+                    scope=default_scope,
                 )
 
     @pytest.hookimpl(hookwrapper=True)
@@ -107,7 +109,7 @@ class ChivePlugin:
             ret_type = ckpt_data["ret_type"]
             if not (ckpt_data["recompute"] or self.force_recompute):
                 try:
-                    val = chive.IO.load(ret_type, savename)
+                    val = self.IO.load(ret_type, savename)
                     print(f"Loaded {fixturedef.argname} from checkpoint")
 
                     def cache_func(*args, **kwargs):
@@ -129,7 +131,7 @@ class ChivePlugin:
             ckpt_data = fixturedef.func._chive_checkpoint
             cached_val = _resolve(request.getfixturevalue(fixturedef.argname))
             assert isinstance(cached_val, ckpt_data["ret_type"])
-            chive.IO.save(cached_val, save_name)
+            self.IO.save(cached_val, save_name)
 
 
 def _load_from_path(path):

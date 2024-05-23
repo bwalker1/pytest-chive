@@ -1,10 +1,7 @@
 from collections import defaultdict
 from pathlib import Path
 import pickle
-import pytest
 from typing import *
-
-import chive
 
 
 class ChiveIO:
@@ -81,5 +78,5 @@ def get_save_path(
     except AttributeError:
         pass
 
-    save_path = "chive_data/" + "/".join(params.values())
+    save_path = ".chive/" + "/".join(params.values())
     return save_path

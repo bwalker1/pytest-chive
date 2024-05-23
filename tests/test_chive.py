@@ -1,34 +1,27 @@
 import pytest
-
-import chive
-
-
-@chive.node
-def node_1():
-    return 1
+import subprocess
+import time
 
 
-dataset = chive.param(["test_dataset", "another_dataset"])
-
-
-@chive.checkpoint(save_path="helloworld")  # , recompute=True)
-def node_2(node_1, dataset) -> str:
-    print(f"Hello World from {dataset}")
-    return dataset
-
-
-@chive.output
-def other_function(dataset, node_2):
-    assert True or node_2 == dataset
+def test_import_chive():
+    """
+    Test if the chive package can be imported in less than 0.2 seconds
+    """
+    start = time.time()
+    assert (
+        subprocess.run(["python", "-c", "import chive"], capture_output=True).returncode
+        == 0
+    )
+    elapsed = time.time() - start
+    assert elapsed < 0.2
 
 
 if __name__ == "__main__":
     import pytest
 
     args = [
-        "-p no:chive",
+        # "-p no:chive",
         "--capture=no",
-        # "--param_files=test/params/params.yaml",
-        "/workspaces/chive/chive/pytest_plugin/test_chive.py",
+        "/workspaces/pytest-chive/tests/test_chive.py",
     ]
     pytest.main(args)

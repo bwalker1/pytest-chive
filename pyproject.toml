@@ -5,16 +5,16 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pytest-chive"
+name = "chive"
 description = "Computational graph workflow + Unit Testing for Scientific Python"
 version = "0.1.0"
 readme = "README.rst"
 requires-python = ">=3.8"
 authors = [
-    { name = "Benjamin Walker", email = "raphael@hackebrot.de" },
+    { name = "Benjamin Walker" },
 ]
 maintainers = [
-    { name = "Benjamin Walker", email = "raphael@hackebrot.de" },
+    { name = "Benjamin Walker" },
 ]
 license = {file = "LICENSE"}
 classifiers = [
@@ -31,7 +31,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
@@ -40,4 +39,4 @@ dependencies = [
 [project.urls]
 Repository = "https://github.com/bwalker1/pytest-chive"
 [project.entry-points.pytest11]
-chive = "pytest_chive.plugin"
+chive = "chive.plugin"
