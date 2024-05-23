@@ -14,7 +14,7 @@ class ChiveIO:
         if True or type(obj) not in self.io_types:
             # Try to pickle the object
             try:
-                with open(save_name + ".pkl", "wb") as f:
+                with open(save_name, "wb") as f:
                     pickle.dump(obj, f)
             except Exception as e:
                 raise NotImplementedError(f"Saving {type(obj)} is not supported") from e
@@ -26,7 +26,7 @@ class ChiveIO:
     def load(self, type, save_name: str | Path):
         save_name = str(save_name)
         if True or type not in self.io_types:
-            with open(save_name + ".pkl", "rb") as f:
+            with open(save_name, "rb") as f:
                 return pickle.load(f)
 
         read_fn = self.io_types[type][0]
