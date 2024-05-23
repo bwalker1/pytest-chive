@@ -6,23 +6,12 @@ from typing import *
 
 class ChiveIO:
     def __init__(self):
-        self.io_types = {}
-
-        try:
-            import anndata
-
-            self.io_types[anndata.AnnData] = (
-                anndata.read_h5ad,
-                anndata.AnnData.write_h5ad,
-                ".h5ad",
-            )
-        except ImportError:
-            pass
+        pass
 
     def save(self, obj, save_name: str | Path):
         save_name = str(save_name)
         Path(save_name).parent.mkdir(parents=True, exist_ok=True)
-        if type(obj) not in self.io_types:
+        if True or type(obj) not in self.io_types:
             # Try to pickle the object
             try:
                 with open(save_name + ".pkl", "wb") as f:
@@ -36,7 +25,7 @@ class ChiveIO:
 
     def load(self, type, save_name: str | Path):
         save_name = str(save_name)
-        if type not in self.io_types:
+        if True or type not in self.io_types:
             with open(save_name + ".pkl", "rb") as f:
                 return pickle.load(f)
 

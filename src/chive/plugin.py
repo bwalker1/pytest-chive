@@ -1,44 +1,27 @@
-from collections import defaultdict
-import importlib.util
-import logging
+import importlib
 import pytest
-import sys
 from typing import *  # type: ignore
-import warnings
 import yaml
 
 from .lazy import ChiveLazyFunc, _resolve
 from .io import get_save_path, ChiveIO
 from .nodes import default_scope, param
+from .mpl import figsaver, fig, ax
 
 
 def pytest_addoption(parser, pluginmanager):
-    parser.addoption(
-        "--param_files", action="append", default=[], help="parameter yaml files"
-    )
-    parser.addoption(
-        "--params", action="store", default={}, help="parameter dictionary"
-    )
-    parser.addoption(
-        "--pipeline", action="store_true", default=False, help="run pipeline code"
-    )
+    parser.addoption("--chive_config", default=None, help="Chive config YAML file")
     parser.addoption(
         "--savefig", action="store_true", default=False, help="save figures from tests"
     )
-
-
-def pytest_pycollect_makeitem(collector, name, obj):
-    try:
-        for mark in obj.pytestmark:  # @IgnoreException
-            if mark.name == "chive_output":
-                return list(collector._genfunctions(name, obj))
-    except AttributeError:
-        pass
+    parser.addini("workflow", help="Main workflow", default=None)
+    parser.addini("chive_config", help="Chive Configuration File", default=None)
 
 
 def pytest_plugin_registered(plugin, plugin_name, manager):
-    if not manager.hasplugin("chive_sub"):
-        manager.register(ChivePlugin(), name="chive_sub")
+    if plugin_name == "chive":
+        if not manager.hasplugin("chive_sub"):
+            manager.register(ChivePlugin(), name="chive_sub")
 
 
 class ChivePlugin:
@@ -46,34 +29,46 @@ class ChivePlugin:
         self.params = {}
         self.force_recompute = force_recompute
         self.IO = ChiveIO()
+        self.main_workflow: str | None = None
+        self.sub_workflows: List[str] = []
+
+        self.manager = None
 
     def pytest_configure(self, config):
         config.addinivalue_line("markers", "chive_output: Chive output node")
-        config.addinivalue_line("markers", "chive_replicate: Chive replicate marker")
 
-        for param in config.getoption("--param_files"):
-            with open(param) as f:
-                params = yaml.safe_load(f)
-            for name, vals in params.items():
-                self.load_param(name, param(vals), overwrite=True)
+        self.main_workflow = config.getini("workflow")
+        if chive_config := config.getoption("--chive_config") or config.getini(
+            "chive_config"
+        ):
+            with open(chive_config) as f:
+                cfg = yaml.safe_load(f)
+            if "workflows" in cfg:
+                self.sub_workflows.extend(cfg["workflows"])
+            if "parameters" in cfg:
+                for name, vals in cfg["parameters"].items():
+                    self.load_param(name, param(vals), overwrite=True)
 
-    def pytest_collect_file(self, file_path, parent):
-        return
-        if file_path.suffix == ".py" and not file_path.name.startswith("_"):
-            # first check for the text "chive" to avoid loading unnecessary files
-            with open(file_path) as f:
-                if "chive" not in f.read():
-                    return
-            mod = _load_from_path(file_path)
-            for name, obj in mod.__dict__.items():
-                if isinstance(obj, param):
-                    self.load_param(name, obj, overwrite=False)
+        self.load_workflows()
 
-                if (
-                    hasattr(obj, "_chive_checkpoint")
-                    and "replicate" in obj._chive_checkpoint  # type: ignore
-                ):
-                    self.replicate[obj.__name__] = obj._chive_checkpoint["replicate"]  # type: ignore
+    def pytest_plugin_registered(self, plugin, plugin_name, manager):
+        for name, obj in plugin.__dict__.items():
+            if isinstance(obj, param):
+                self.load_param(name, obj, overwrite=False)
+        asdf = 1
+        if plugin_name == "chive_sub":
+            self.manager = manager
+
+    def load_workflows(self):
+        if self.manager is None:
+            return
+        if self.main_workflow is not None:
+            mod = importlib.import_module(self.main_workflow)
+            self.manager.register(mod, name=self.main_workflow)
+
+        for sub_workflow in self.sub_workflows:
+            mod = importlib.import_module(sub_workflow)
+            self.manager.register(mod, name=sub_workflow)
 
     def load_param(self, name, param, overwrite):
         if overwrite or name not in self.params and not overwrite:
@@ -132,10 +127,3 @@ class ChivePlugin:
             cached_val = _resolve(request.getfixturevalue(fixturedef.argname))
             assert isinstance(cached_val, ckpt_data["ret_type"])
             self.IO.save(cached_val, save_name)
-
-
-def _load_from_path(path):
-    spec = importlib.util.spec_from_file_location(path.name, path)
-    module = importlib.util.module_from_spec(spec)  # type:ignore
-    spec.loader.exec_module(module)  # type: ignore
-    return module

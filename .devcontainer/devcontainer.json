@@ -18,11 +18,11 @@
                 "ms-toolsai.jupyter",
                 "ms-toolsai.jupyter-renderers",
                 "ms-python.black-formatter",
-                "GitHub.copilot",
+                "GitHub.copilot"
             ]
         }
     },
     "containerEnv": {
         "PYTHONDONTWRITEBYTECODE": "1"
-    },
+    }
 }
