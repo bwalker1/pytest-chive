@@ -103,6 +103,7 @@ class ChivePlugin:
                     scope=default_scope,
                 )
 
+
     def pytest_fixture_setup(self, fixturedef, request):
         if hasattr(fixturedef.func, "_chive_checkpoint"):
             save_path = get_save_path(request)

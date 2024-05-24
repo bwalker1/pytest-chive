@@ -3,11 +3,11 @@ from pathlib import Path
 import pytest
 import types
 from typing import *
-
 from .lazy import ChiveLazyFunc
 from .io import get_save_path
 
 default_scope: Final[str] = "session"
+
 
 
 def node(lazy: bool | Callable = True):

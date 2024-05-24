@@ -33,7 +33,7 @@ class ChiveLazyFunc:
         except Exception as e:
             self.cache_error = e
             raise
-
+            
         if self.save_callback is not None:
             try:
                 self.save_callback(self.cache_val)
