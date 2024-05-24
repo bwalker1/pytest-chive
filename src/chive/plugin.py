@@ -106,9 +106,10 @@ class ChivePlugin:
     def pytest_fixture_setup(self, fixturedef, request):
         if hasattr(fixturedef.func, "_chive_checkpoint"):
             save_path = get_save_path(request)
+            save_name = f"{save_path}/{fixturedef.argname}.pkl"
             ckpt_data = fixturedef.func._chive_checkpoint
             if not (ckpt_data["recompute"] == True or self.force_recompute):
-                save_name = f"{save_path}/{fixturedef.argname}.pkl"
+
                 try:
                     val = self.IO.load(save_name)
                     print(f"Loaded {fixturedef.argname} from checkpoint")
