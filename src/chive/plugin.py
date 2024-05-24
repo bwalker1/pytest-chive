@@ -11,6 +11,9 @@ from .io import get_save_path, ChiveIO
 from .nodes import default_scope, param
 from .utils import ChiveInternalError
 
+# Need to import fixtures located in here:
+from .mpl import *
+
 
 def pytest_plugin_registered(plugin, plugin_name, manager):
     if plugin_name == "chive":
@@ -76,6 +79,8 @@ class ChivePlugin:
             if "checkpoints" in cfg:
                 for name, vals in cfg["checkpoints"].items():
                     self.checkpoint_parameter_overrides[name].update(vals)
+            if "recompute" in cfg:
+                self.force_recompute = cfg["recompute"]
 
         self._load_workflows()
 
@@ -117,20 +122,18 @@ class ChivePlugin:
                 except Exception:
                     if ckpt_data["recompute"] == "error":
                         raise
-                    else:
-                        # Add a wrapper to save the value when it's computed
-                        # Have to be careful not to save multiple times because we're outside the lazy function that caches
-                        def wrapper(func, *args, **kwargs):
-                            lazy_func = func(*args, **kwargs)
-                            if not isinstance(lazy_func, ChiveLazyFunc):
-                                raise ChiveInternalError("why?")
-                            lazy_func.save_callback = lambda val: self.IO.save(
-                                val, save_name
-                            )
-                            return lazy_func
 
-                        fixturedef._chive_old_func = fixturedef.func
-                        fixturedef.func = decorator.decorator(wrapper, fixturedef.func)
+            # Add a wrapper to save the value when it's computed
+            # Have to be careful not to save multiple times because we're outside the lazy function that caches
+            def wrapper(func, *args, **kwargs):
+                lazy_func = func(*args, **kwargs)
+                if not isinstance(lazy_func, ChiveLazyFunc):
+                    raise ChiveInternalError("why?")
+                lazy_func.save_callback = lambda val: self.IO.save(val, save_name)
+                return lazy_func
+
+            fixturedef._chive_old_func = fixturedef.func
+            fixturedef.func = decorator.decorator(wrapper, fixturedef.func)
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_setup(self, item):

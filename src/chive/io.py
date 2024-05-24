@@ -51,7 +51,7 @@ def get_save_path(
     try:
         params.update(
             {
-                f"{k}={str(v)}": v
+                k: f"{k}={str(v)}"
                 for k, v in request_params.items()
                 if (dependencies is None or k in dependencies)
             }
