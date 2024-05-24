@@ -2,14 +2,14 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function")  # type: ignore
 def figsaver(request, dataset: str, exp_name: str):
     import matplotlib.pyplot as plt
 
     save = request.config.getoption("--savefig")
 
     def _savefig(fig, idx=None):
-        path = f"dataset_figures/{dataset}/{exp_name}/{request.node.name.replace('test_', '').split('[')[0]}"
+        path = f"chive_output/{dataset}/{exp_name}/{request.node.name.replace('test_', '').split('[')[0]}"
         if idx is not None:
             path += f"/{idx}"
         path += ".png"

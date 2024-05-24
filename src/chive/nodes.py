@@ -2,36 +2,38 @@ import decorator
 from pathlib import Path
 import pytest
 import types
-from typing import Final
-
+from typing import *
 from .lazy import ChiveLazyFunc
 from .io import get_save_path
 
 default_scope: Final[str] = "session"
 
 
-def node(func):
-    def wrapper(func, *args, **kwargs):
-        return ChiveLazyFunc(func, *args, **kwargs)
 
-    return pytest.fixture(decorator.decorator(wrapper, func), scope=default_scope)  # type: ignore
-
-
-def checkpoint(save_path=None, recompute=False, name=None, replicate=None):
-    if isinstance(save_path, types.FunctionType):
+def node(lazy: bool | Callable = True):
+    if not isinstance(lazy, bool):
         # Handle case where decorator is called without arguments
-        return checkpoint(None)(save_path)  # type: ignore
+        return node()(lazy)
 
     def deco(func):
-        try:
-            ret_type = func.__annotations__["return"]
-        except KeyError:
-            raise ValueError("Checkpoint functions must have a return type annotation")
+        def wrapper(func, *args, **kwargs):
+            return ChiveLazyFunc(func, *args, **kwargs)
 
+        maybe_wrapped_func = decorator.decorator(wrapper, func) if lazy else func
+
+        return pytest.fixture(maybe_wrapped_func, scope=default_scope)  # type: ignore
+
+    return deco
+
+
+def checkpoint(recompute: bool | Literal["error"] | Callable = False, replicate=None):
+    if not isinstance(recompute, bool) and recompute != "error":
+        # Handle case where decorator is called without arguments
+        return checkpoint()(recompute)  # type: ignore
+
+    def deco(func):
         func._chive_checkpoint = {
-            "save_path": save_path,
             "recompute": recompute,
-            "ret_type": ret_type,
         }
         if replicate is not None:
             func._chive_checkpoint["replicate"] = replicate
@@ -51,7 +53,7 @@ def output(func):
 
 
 class param:
-    def __init__(self, *vals, always_label=False):
+    def __init__(self, *vals):
         self.vals = vals
 
 
