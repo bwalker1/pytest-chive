@@ -2,7 +2,7 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function")  # type: ignore
 def figsaver(request, dataset: str, exp_name: str):
     import matplotlib.pyplot as plt
 

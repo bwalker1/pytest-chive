@@ -11,27 +11,19 @@ class ChiveIO:
     def save(self, obj, save_name: str | Path):
         save_name = str(save_name)
         Path(save_name).parent.mkdir(parents=True, exist_ok=True)
-        if True or type(obj) not in self.io_types:
-            # Try to pickle the object
-            try:
-                with open(save_name, "wb") as f:
-                    pickle.dump(obj, f)
-            except Exception as e:
-                raise NotImplementedError(f"Saving {type(obj)} is not supported") from e
-        else:
-            write_fn = self.io_types[type(obj)][1]
-            ext = self.io_types[type(obj)][2]
-            write_fn(obj, save_name + ext)
+        # Try to pickle the object
+        try:
+            with open(save_name, "wb") as f:
+                pickle.dump(obj, f)
+        except Exception as e:
+            raise NotImplementedError(
+                f"Unable to save {repr(obj)!r} of type {type(obj)}."
+            ) from e
 
-    def load(self, type, save_name: str | Path):
+    def load(self, save_name: str | Path):
         save_name = str(save_name)
-        if True or type not in self.io_types:
-            with open(save_name, "rb") as f:
-                return pickle.load(f)
-
-        read_fn = self.io_types[type][0]
-        ext = self.io_types[type][2]
-        return read_fn(save_name + ext)
+        with open(save_name, "rb") as f:
+            return pickle.load(f)
 
 
 def get_save_path(
@@ -59,7 +51,7 @@ def get_save_path(
     try:
         params.update(
             {
-                k: v if isinstance(v, str) else f"{k}={str(v)}"
+                f"{k}={str(v)}": v
                 for k, v in request_params.items()
                 if (dependencies is None or k in dependencies)
             }

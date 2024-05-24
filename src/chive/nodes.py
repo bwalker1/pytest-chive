@@ -17,21 +17,14 @@ def node(func):
     return pytest.fixture(decorator.decorator(wrapper, func), scope=default_scope)  # type: ignore
 
 
-def checkpoint(save_path=None, recompute=False, name=None, replicate=None):
+def checkpoint(save_path=None, recompute: bool | str = False, replicate=None):
     if isinstance(save_path, types.FunctionType):
         # Handle case where decorator is called without arguments
         return checkpoint(None)(save_path)  # type: ignore
 
     def deco(func):
-        try:
-            ret_type = func.__annotations__["return"]
-        except KeyError:
-            raise ValueError("Checkpoint functions must have a return type annotation")
-
         func._chive_checkpoint = {
-            "save_path": save_path,
             "recompute": recompute,
-            "ret_type": ret_type,
         }
         if replicate is not None:
             func._chive_checkpoint["replicate"] = replicate
@@ -51,7 +44,7 @@ def output(func):
 
 
 class param:
-    def __init__(self, *vals, always_label=False):
+    def __init__(self, *vals):
         self.vals = vals
 
 
